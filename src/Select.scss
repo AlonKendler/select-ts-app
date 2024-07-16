@@ -21,18 +21,41 @@
       flex: 1;
       min-width: 0;
 
+      .selected-count {
+        font-weight: bold;
+        margin-right: 0.5rem;
+      }
+
       .badge {
         background-color: lighten($secondary-color, 40%);
         color: $text-color;
         padding: 0.2rem 0.5rem;
         border-radius: $border-radius;
         font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
       }
+      .remove-option {
+        background: none;
+        border: none;
+        color: $text-color;
+        cursor: pointer;
+        font-size: 1.2em;
+        line-height: 1;
+        margin-left: 0.25rem;
+        padding: 0 2px 0 2px;
+
+        &:hover {
+          
+          background-color: lighten($secondary-color, 30%);
+        }
+    }
 
       .placeholder {
         color: $text-color;
         opacity: 0.5;
       }
+      
     }
 
     .select-controls {
@@ -51,7 +74,7 @@
         transition: color $transition-duration;
 
         &:hover {
-          color: darken($text-color, 20%);
+            background-color: lighten($secondary-color, 30%);
         }
       }
 

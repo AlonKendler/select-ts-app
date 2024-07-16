@@ -2,16 +2,16 @@ import React, { useState, useMemo } from "react";
 import "./Select.scss";
 
 interface Option {
-  id: number;
   label: string;
+  value: number;
 }
 
 type SelectProps = {
   options: Option[];
   multiple?: boolean;
   placeholder?: string;
-  onChange: (value: number[] | number) => void;
-  value: number[] | number;
+  onChange: (value: number[] | number | null) => void;
+  value: number[] | number | null;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -25,7 +25,10 @@ const Select: React.FC<SelectProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   const selectedValue = useMemo(
-    () => (multiple ? (value as number[]) : [value as number]),
+    () =>
+      (multiple ? (value as number[]) : [value as number]).filter(
+        (v) => v != null
+      ),
     [multiple, value]
   );
 
@@ -37,27 +40,33 @@ const Select: React.FC<SelectProps> = ({
     [options, searchTerm]
   );
 
-  const handleSelect = (optionId: number) => {
+  const handleSelect = (optionValue: number) => {
     if (multiple) {
-      const newValue = selectedValue.includes(optionId)
-        ? selectedValue.filter((id) => id !== optionId)
-        : [...selectedValue, optionId];
+      const newValue = selectedValue.includes(optionValue)
+        ? selectedValue.filter((v) => v !== optionValue)
+        : [...selectedValue, optionValue];
       onChange(newValue);
     } else {
-      onChange(optionId);
+      onChange(optionValue);
       setIsOpen(false);
     }
   };
 
   const handleSelectAll = () => {
     if (multiple) {
-      onChange(filteredOptions.map((option) => option.id));
+      onChange(filteredOptions.map((option) => option.value));
     }
   };
 
   const handleDeselectAll = () => {
+    onChange(multiple ? [] : null);
+  };
+
+  const removeOption = (optionValue: number) => {
     if (multiple) {
-      onChange([]);
+      onChange(selectedValue.filter((v) => v !== optionValue));
+    } else {
+      onChange(null);
     }
   };
 
@@ -65,14 +74,33 @@ const Select: React.FC<SelectProps> = ({
 
   return (
     <div className="select-container">
-      <div className="select-header">
+      <div className="select-header" onClick={toggleOpen}>
         <div className="selected-options">
           {selectedValue.length > 0 ? (
-            selectedValue.map((optionId) => (
-              <span key={optionId} className="badge">
-                {options.find((option) => option.id === optionId)?.label}
-              </span>
-            ))
+            <>
+              {multiple && (
+                <span className="selected-count">
+                  {selectedValue.length} selected
+                </span>
+              )}
+              {selectedValue.map((optionValue) => (
+                <span key={optionValue} className="badge">
+                  {
+                    options.find((option) => option.value === optionValue)
+                      ?.label
+                  }
+                  <button
+                    className="remove-option"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeOption(optionValue);
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </>
           ) : (
             <span className="placeholder">{placeholder}</span>
           )}
@@ -82,26 +110,29 @@ const Select: React.FC<SelectProps> = ({
             <>
               <button
                 className="control-button"
-                onClick={handleSelectAll}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleSelectAll();
+                }}
                 title="Select All"
               >
                 ✓
               </button>
               <button
                 className="control-button"
-                onClick={handleDeselectAll}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleDeselectAll();
+                }}
                 title="Deselect All"
               >
                 ×
               </button>
             </>
           )}
-          <button
-            className={`toggle-button ${isOpen ? "open" : ""}`}
-            onClick={toggleOpen}
-          >
-            {isOpen ? "▲" : "▼"}
-          </button>
+          <span className="toggle-button">{isOpen ? "▲" : "▼"}</span>
         </div>
       </div>
       {isOpen && (
@@ -112,14 +143,15 @@ const Select: React.FC<SelectProps> = ({
             placeholder="Search options..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
           />
           <div className="options-list">
             {filteredOptions.map((option) => (
-              <label key={option.id}>
+              <label key={option.value}>
                 <input
                   type={multiple ? "checkbox" : "radio"}
-                  checked={selectedValue.includes(option.id)}
-                  onChange={() => handleSelect(option.id)}
+                  checked={selectedValue.includes(option.value)}
+                  onChange={() => handleSelect(option.value)}
                 />
                 {option.label}
               </label>

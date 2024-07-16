@@ -3,11 +3,11 @@ import Select from "./Select";
 import "./App.scss";
 
 const options = [
-  { id: 1, label: "Option 1" },
-  { id: 2, label: "Option 2" },
-  { id: 3, label: "Option 3" },
-  { id: 4, label: "Option 4" },
-  { id: 5, label: "Option 5" },
+  { label: "Option 1", value: 1 },
+  { label: "Option 2", value: 2 },
+  { label: "Option 3", value: 3 },
+  { label: "Option 4", value: 4 },
+  { label: "Option 5", value: 5 },
 ];
 
 const App: React.FC = () => {
@@ -16,7 +16,9 @@ const App: React.FC = () => {
   const [selectedMultiOptions, setSelectedMultiOptions] = useState<number[]>(
     []
   );
-  const [selectedSingleOption, setSelectedSingleOption] = useState<number>(0);
+  const [selectedSingleOption, setSelectedSingleOption] = useState<
+    number | null
+  >(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,7 +51,7 @@ const App: React.FC = () => {
         multiple={false}
         placeholder="Select Single"
         value={selectedSingleOption}
-        onChange={(value) => setSelectedSingleOption(value as number)}
+        onChange={(value) => setSelectedSingleOption(value as number | null)}
       />
       <button type="submit">Submit</button>
     </form>
