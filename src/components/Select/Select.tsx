@@ -6,6 +6,12 @@ interface Option {
   value: number;
 }
 
+interface CustomStyles {
+  container?: React.CSSProperties;
+  option?: React.CSSProperties;
+  selectedValue?: React.CSSProperties;
+}
+
 type SelectProps = {
   isSearchable?: boolean;
   disabled?: boolean;
@@ -15,6 +21,9 @@ type SelectProps = {
   placeholder?: string;
   onChange: (value: number[] | number | null) => void;
   value: number[] | number | null;
+  renderOption?: (option: Option) => React.ReactNode;
+  renderValue?: (value: Option | Option[]) => React.ReactNode;
+  customStyles?: CustomStyles;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -26,6 +35,9 @@ const Select: React.FC<SelectProps> = ({
   placeholder = "Select...",
   onChange,
   value,
+  renderOption,
+  renderValue,
+  customStyles = {},
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -57,6 +69,10 @@ const Select: React.FC<SelectProps> = ({
     [multiple, value]
   );
 
+  const selectedOptions = useMemo(() => {
+    return options.filter((option) => selectedValue.includes(option.value));
+  }, [options, selectedValue]);
+
   const filteredOptions = useMemo(
     () =>
       options.filter((option) =>
@@ -66,7 +82,6 @@ const Select: React.FC<SelectProps> = ({
   );
 
   useEffect(() => {
-    // Reset focusIndex if it is out of bounds after filtering
     if (focusIndex >= filteredOptions.length) {
       setFocusIndex(filteredOptions.length - 1);
     }
@@ -170,6 +185,7 @@ const Select: React.FC<SelectProps> = ({
   return (
     <div
       className={`select-container ${classname}`}
+      style={customStyles.container}
       ref={selectRef}
       onKeyDown={handleKeyDown}
       tabIndex={0}
@@ -186,35 +202,36 @@ const Select: React.FC<SelectProps> = ({
         onClick={toggleOpen}
         aria-controls="select-listbox"
       >
-        <div className="selected-options">
-          {selectedValue.length > 0 ? (
-            <>
-              {multiple && (
-                <span className="selected-count">
-                  {selectedValue.length} selected
-                </span>
-              )}
-              <div className="selected-badges">
-                {selectedValue.map((optionValue) => (
-                  <span key={optionValue} className="badge">
-                    {
-                      options.find((option) => option.value === optionValue)
-                        ?.label
-                    }
-                    <button
-                      className="remove-option"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        removeOption(optionValue);
-                      }}
-                    >
-                      ×
-                    </button>
+        <div className="selected-options" style={customStyles.selectedValue}>
+          {selectedOptions.length > 0 ? (
+            renderValue ? (
+              renderValue(multiple ? selectedOptions : selectedOptions[0])
+            ) : (
+              <>
+                {multiple && (
+                  <span className="selected-count">
+                    {selectedOptions.length} selected
                   </span>
-                ))}
-              </div>
-            </>
+                )}
+                <div className="selected-badges">
+                  {selectedOptions.map((option) => (
+                    <span key={option.value} className="badge">
+                      {option.label}
+                      <button
+                        className="remove-option"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeOption(option.value);
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </>
+            )
           ) : (
             <span className="placeholder">{placeholder}</span>
           )}
@@ -263,6 +280,7 @@ const Select: React.FC<SelectProps> = ({
                 tabIndex={-1}
                 role="option"
                 aria-selected={selectedValue.includes(option.value)}
+                style={customStyles.option}
               >
                 <input
                   type={multiple ? "checkbox" : "radio"}
@@ -270,7 +288,7 @@ const Select: React.FC<SelectProps> = ({
                   onChange={() => handleSelect(option.value)}
                   disabled={disabled}
                 />
-                {option.label}
+                {renderOption ? renderOption(option) : option.label}
               </label>
             ))}
           </div>

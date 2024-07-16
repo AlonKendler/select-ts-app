@@ -2,16 +2,6 @@ import React, { useState } from "react";
 import "./App.scss";
 import Select from "./components/Select/Select";
 
-/* generateOptions creates mocks like:
-const options = [
-  { label: "Option 1", value: 1 },
-  { label: "Option 2", value: 2 },
-  { label: "Option 3", value: 3 },
-  { label: "Option 4", value: 4 },
-  { label: "Option 5", value: 5 },
-];
-*/
-
 const generateOptions = (count: number) => {
   return Array.from({ length: count }, (_, i) => ({
     label: `Option ${i + 1}`,
@@ -20,108 +10,111 @@ const generateOptions = (count: number) => {
 };
 
 const App: React.FC = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [selectedMultiOptions, setSelectedMultiOptions] = useState<number[]>(
-    []
-  );
-  const [selectedSingleOption, setSelectedSingleOption] = useState<
-    number | null
-  >(null);
-  const [selectedLargeSingleOption, setSelectedLargeSingleOption] = useState<
-    number | null
-  >(null);
-  const [selectedLargeOptions, setSelectedLargeOptions] = useState<number[]>(
-    []
-  );
-  const [selectedEmptyOptions, setSelectedEmptyOptions] = useState<number[]>(
-    []
-  );
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    singleSelect: null as number | null,
+    multiSelect: [] as number[],
+    largeSelect: [] as number[],
+    customStyleSelect: [] as number[],
+    disabledSelect: null as number | null,
+  });
 
   const normalOptions = generateOptions(5);
-  const largeOptions = generateOptions(100);
-  const emptyOptions: { label: string; value: number }[] = [];
+  const largeOptions = generateOptions(30);
+
+  const handleChange = (field: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({
-      name,
-      email,
-      selectedMultiOptions,
-      selectedSingleOption,
-      selectedLargeOptions,
-      selectedLargeSingleOption,
-      selectedEmptyOptions,
-    });
+    console.log("Form Data:", formData);
+  };
+
+  // Custom option rendering
+  const renderCustomOption = (option: { label: string; value: number }) => (
+    <div style={{ display: "contents", alignItems: "center" }}>
+      <span style={{ marginRight: "10px" }}>🔥</span>
+      {option.label}
+    </div>
+  );
+
+  // Custom styles
+  const customStyles = {
+    container: { border: "2px solid purple", borderRadius: "8px" },
+    option: { color: "purple", fontWeight: "bold" as "bold" },
   };
 
   return (
     <form className="app-form" onSubmit={handleSubmit}>
+      <h1>Select Component Showcase</h1>
+
       <input
         type="text"
         placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={formData.name}
+        onChange={(e) => handleChange("name", e.target.value)}
       />
+
       <input
         type="email"
         placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={formData.email}
+        onChange={(e) => handleChange("email", e.target.value)}
       />
+
+      <h2>Single Select (Default)</h2>
+      <Select
+        options={normalOptions}
+        value={formData.singleSelect}
+        onChange={(value) => handleChange("singleSelect", value)}
+        placeholder="Choose one option"
+      />
+
+      <h2>Multiple Select with Search</h2>
       <Select
         options={normalOptions}
         multiple={true}
-        placeholder="Select Multiple (Normal)"
-        value={selectedMultiOptions}
-        onChange={(value) => setSelectedMultiOptions(value as number[])}
         isSearchable={true}
-        disabled={false}
-        classname="normal-multi-select"
+        value={formData.multiSelect}
+        onChange={(value) => handleChange("multiSelect", value as number[])}
+        placeholder="Choose multiple options"
       />
-      <Select
-        options={normalOptions}
-        multiple={false}
-        placeholder="Select Single (Normal)"
-        value={selectedSingleOption}
-        onChange={(value) => setSelectedSingleOption(value as number | null)}
-        isSearchable={true}
-        disabled={false}
-        classname="normal-single-select"
-      />
+
+      <h2>Large Dataset with Multiple Select with Search</h2>
       <Select
         options={largeOptions}
         multiple={true}
-        placeholder="Select Multiple (Large)"
-        value={selectedLargeOptions}
-        onChange={(value) => setSelectedLargeOptions(value as number[])}
         isSearchable={true}
-        disabled={false}
-        classname="large-multi-select"
+        value={formData.largeSelect}
+        onChange={(value) => handleChange("largeSelect", value as number[])}
+        placeholder="Select from 100 options"
       />
+
+      <h2>Custom Styling and Option Rendering</h2>
       <Select
-        options={largeOptions}
-        multiple={false}
-        placeholder="Select Single (Large)"
-        value={selectedLargeSingleOption}
+        options={normalOptions}
+        multiple={true}
+        value={formData.customStyleSelect}
         onChange={(value) =>
-          setSelectedLargeSingleOption(value as number | null)
+          handleChange("customStyleSelect", value as number[])
         }
-        isSearchable={false}
-        disabled={false}
-        classname="large-single-select"
+        placeholder="Custom styled select"
+        renderOption={renderCustomOption}
+        customStyles={customStyles}
       />
+
+      <h2>Disabled Select</h2>
       <Select
-        options={emptyOptions}
-        multiple={true}
-        placeholder="Select (Empty)"
-        value={selectedEmptyOptions}
-        onChange={(value) => setSelectedEmptyOptions(value as number[])}
-        isSearchable={true}
+        options={normalOptions}
+        value={formData.disabledSelect}
+        onChange={(value) => handleChange("disabledSelect", value)}
+        placeholder="This select is disabled"
         disabled={true}
-        classname="empty-multi-select"
       />
-      <button type="submit">Submit</button>
+
+      <button type="submit">Submit Form</button>
     </form>
   );
 };
