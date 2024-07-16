@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import "./Select.scss";
 
 interface Option {
@@ -7,6 +7,9 @@ interface Option {
 }
 
 type SelectProps = {
+  isSearchable?: boolean;
+  disabled?: boolean;
+  classname?: string;
   options: Option[];
   multiple?: boolean;
   placeholder?: string;
@@ -15,6 +18,9 @@ type SelectProps = {
 };
 
 const Select: React.FC<SelectProps> = ({
+  isSearchable = true,
+  disabled = false,
+  classname = "",
   options,
   multiple = false,
   placeholder = "Select...",
@@ -23,6 +29,23 @@ const Select: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const selectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        selectRef.current &&
+        !selectRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const selectedValue = useMemo(
     () =>
@@ -70,11 +93,45 @@ const Select: React.FC<SelectProps> = ({
     }
   };
 
-  const toggleOpen = () => setIsOpen(!isOpen);
+  const toggleOpen = () => {
+    if (!disabled) {
+      setIsOpen(!isOpen);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (
+        event.key === "Enter" ||
+        event.key === " " ||
+        event.key === "ArrowDown"
+      ) {
+        setIsOpen(true);
+        event.preventDefault();
+      }
+    } else {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        // Implement focus movement logic here
+      } else if (event.key === "Enter") {
+        // Implement selection logic for the focused option
+      }
+    }
+  };
 
   return (
-    <div className="select-container">
-      <div className="select-header" onClick={toggleOpen}>
+    <div
+      className={`select-container ${classname}`}
+      ref={selectRef}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      aria-disabled={disabled}
+    >
+      <div
+        className={`select-header ${disabled ? "disabled" : ""}`}
+        onClick={toggleOpen}
+      >
         <div className="selected-options">
           {selectedValue.length > 0 ? (
             <>
@@ -83,23 +140,25 @@ const Select: React.FC<SelectProps> = ({
                   {selectedValue.length} selected
                 </span>
               )}
-              {selectedValue.map((optionValue) => (
-                <span key={optionValue} className="badge">
-                  {
-                    options.find((option) => option.value === optionValue)
-                      ?.label
-                  }
-                  <button
-                    className="remove-option"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeOption(optionValue);
-                    }}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
+              <div className="selected-badges">
+                {selectedValue.map((optionValue) => (
+                  <span key={optionValue} className="badge">
+                    {
+                      options.find((option) => option.value === optionValue)
+                        ?.label
+                    }
+                    <button
+                      className="remove-option"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        removeOption(optionValue);
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             </>
           ) : (
             <span className="placeholder">{placeholder}</span>
@@ -111,7 +170,6 @@ const Select: React.FC<SelectProps> = ({
               <button
                 className="control-button"
                 onClick={(e) => {
-                  e.stopPropagation();
                   e.preventDefault();
                   handleSelectAll();
                 }}
@@ -122,7 +180,6 @@ const Select: React.FC<SelectProps> = ({
               <button
                 className="control-button"
                 onClick={(e) => {
-                  e.stopPropagation();
                   e.preventDefault();
                   handleDeselectAll();
                 }}
@@ -137,14 +194,16 @@ const Select: React.FC<SelectProps> = ({
       </div>
       {isOpen && (
         <div className="select-dropdown">
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search options..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-          />
+          {isSearchable && (
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search options..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
           <div className="options-list">
             {filteredOptions.map((option) => (
               <label key={option.value}>
@@ -152,6 +211,7 @@ const Select: React.FC<SelectProps> = ({
                   type={multiple ? "checkbox" : "radio"}
                   checked={selectedValue.includes(option.value)}
                   onChange={() => handleSelect(option.value)}
+                  disabled={disabled}
                 />
                 {option.label}
               </label>

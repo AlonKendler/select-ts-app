@@ -1,0 +1,147 @@
+@import '../../variables.scss';
+
+.select-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 15px;
+  
+  .select-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid $border-color;
+    border-radius: $border-radius;
+    cursor: pointer;
+    background-color: $background-color;
+  }
+
+  .selected-options {
+    display: flex;
+    flex-direction: column;
+    max-width: calc(100% - 60px);
+  }
+
+  .selected-count {
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: $text-color;
+  }
+
+  .selected-badges {
+    display: flex;
+    flex-wrap: wrap;
+    max-height: 60px;
+    overflow-y: auto;
+    gap: 4px;
+
+    .badge {
+      background-color: lighten($secondary-color, 40%);
+      color: $text-color;
+      padding: 2px 6px;
+      border-radius: $border-radius;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .badge::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .badge::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .badge::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 3px;
+    }
+
+    .badge::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  }
+
+  .remove-option {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 4px;
+    font-size: 14px;
+    color: $text-color;
+
+    &:hover {
+      background-color: lighten($secondary-color, 30%);
+    }
+  }
+
+  .placeholder {
+    color: $text-color;
+    opacity: 0.5;
+  }
+
+  .select-controls {
+    display: flex;
+    align-items: center;
+
+    .control-button,
+    .toggle-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 4px;
+      color: $text-color;
+      transition: color $transition-duration;
+
+      &:hover {
+        background-color: lighten($secondary-color, 30%);
+      }
+    }
+
+    .toggle-button {
+      font-size: 12px;
+      margin-left: 8px;
+    }
+  }
+
+  .select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: $background-color;
+    border: 1px solid $border-color;
+    border-top: none;
+    border-radius: 0 0 $border-radius $border-radius;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+
+    .search-input {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-bottom: 1px solid $border-color;
+    }
+
+    .options-list {
+      padding: 8px;
+
+      label {
+        display: block;
+        padding: 4px 0;
+        cursor: pointer;
+
+        &:hover {
+          background-color: lighten($secondary-color, 30%);
+        }
+
+        input {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+}
