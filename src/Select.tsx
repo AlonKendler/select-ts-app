@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import "./Select.scss";
 
 interface Option {
+  id: number;
   label: string;
-  value: number;
 }
 
 type SelectProps = {
@@ -10,7 +11,6 @@ type SelectProps = {
   multiple?: boolean;
   placeholder?: string;
   onChange: (value: number[] | number) => void;
-  filterText?: string;
   value: number[] | number;
 };
 
@@ -19,99 +19,112 @@ const Select: React.FC<SelectProps> = ({
   multiple = false,
   placeholder = "Select...",
   onChange,
-  filterText,
   value,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const initialSelectedValue = multiple ? [] : "";
-  const [selectedValue, setSelectedValue] = useState<number[] | number>(value);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleSelect = (option: Option) => {
+  const selectedValue = useMemo(
+    () => (multiple ? (value as number[]) : [value as number]),
+    [multiple, value]
+  );
+
+  const filteredOptions = useMemo(
+    () =>
+      options.filter((option) =>
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [options, searchTerm]
+  );
+
+  const handleSelect = (optionId: number) => {
     if (multiple) {
-      const newValue = selectedValue as number[];
-      const index = newValue.indexOf(option.value);
-      if (index !== -1) {
-        newValue.splice(index, 1);
-      } else {
-        newValue.push(option.value);
-      }
-      setSelectedValue([...newValue]);
-      onChange([...newValue]);
+      const newValue = selectedValue.includes(optionId)
+        ? selectedValue.filter((id) => id !== optionId)
+        : [...selectedValue, optionId];
+      onChange(newValue);
     } else {
-      setSelectedValue(option.value);
-      onChange(option.value);
+      onChange(optionId);
+      setIsOpen(false);
     }
   };
 
   const handleSelectAll = () => {
     if (multiple) {
-      const allValues = options.map((option) => option.value);
-      setSelectedValue(allValues);
-      onChange(allValues);
+      onChange(filteredOptions.map((option) => option.id));
     }
   };
 
   const handleDeselectAll = () => {
     if (multiple) {
-      setSelectedValue([]);
       onChange([]);
     }
   };
 
-  const filteredOptions = options.filter((option) =>
-    filterText
-      ? option.label.toLowerCase().includes(filterText.toLowerCase())
-      : true
-  );
-
-  const isSelected = (option: Option) =>
-    multiple
-      ? (selectedValue as number[]).includes(option.value)
-      : selectedValue === option.value;
-
   const toggleOpen = () => setIsOpen(!isOpen);
-
-  const renderOption = (option: Option) => (
-    <label key={option.value}>
-      <input
-        type={multiple ? "checkbox" : "radio"}
-        checked={isSelected(option)}
-        onChange={() => handleSelect(option)}
-      />
-      {option.label}
-    </label>
-  );
-
-  const renderSelectAll = () => (
-    <div>
-      <button type="button" onClick={handleSelectAll}>
-        Select All
-      </button>
-      <button type="button" onClick={handleDeselectAll}>
-        Deselect All
-      </button>
-    </div>
-  );
 
   return (
     <div className="select-container">
-      <button type="button" onClick={toggleOpen}>
-        {multiple
-          ? `${(selectedValue as number[]).length} selected`
-          : options.find((option) => option.value === selectedValue)?.label ||
-            placeholder}
-      </button>
+      <div className="select-header">
+        <div className="selected-options">
+          {selectedValue.length > 0 ? (
+            selectedValue.map((optionId) => (
+              <span key={optionId} className="badge">
+                {options.find((option) => option.id === optionId)?.label}
+              </span>
+            ))
+          ) : (
+            <span className="placeholder">{placeholder}</span>
+          )}
+        </div>
+        <div className="select-controls">
+          {multiple && (
+            <>
+              <button
+                className="control-button"
+                onClick={handleSelectAll}
+                title="Select All"
+              >
+                ✓
+              </button>
+              <button
+                className="control-button"
+                onClick={handleDeselectAll}
+                title="Deselect All"
+              >
+                ×
+              </button>
+            </>
+          )}
+          <button
+            className={`toggle-button ${isOpen ? "open" : ""}`}
+            onClick={toggleOpen}
+          >
+            {isOpen ? "▲" : "▼"}
+          </button>
+        </div>
+      </div>
       {isOpen && (
         <div className="select-dropdown">
-          {multiple && renderSelectAll()}
-          {filterText && (
-            <input
-              type="text"
-              placeholder="Search..."
-              onChange={(e) => onChange(e.target.value as any)}
-            />
-          )}
-          {filteredOptions.map(renderOption)}
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search options..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <div className="options-list">
+            {filteredOptions.map((option) => (
+              <label key={option.id}>
+                <input
+                  type={multiple ? "checkbox" : "radio"}
+                  checked={selectedValue.includes(option.id)}
+                  onChange={() => handleSelect(option.id)}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -1,26 +1,30 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import Select from "./Select";
-import "./App.css";
+import "./App.scss";
 
 const options = [
-  { label: "Option 1", value: 1 },
-  { label: "Option 2", value: 2 },
-  { label: "Option 3", value: 3 },
+  { id: 1, label: "Option 1" },
+  { id: 2, label: "Option 2" },
+  { id: 3, label: "Option 3" },
+  { id: 4, label: "Option 4" },
+  { id: 5, label: "Option 5" },
 ];
 
 const App: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
+  const [selectedMultiOptions, setSelectedMultiOptions] = useState<number[]>(
+    []
+  );
+  const [selectedSingleOption, setSelectedSingleOption] = useState<number>(0);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log({ name, email, selectedOptions });
+    console.log({ name, email, selectedMultiOptions, selectedSingleOption });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="app-form" onSubmit={handleSubmit}>
       <input
         type="text"
         placeholder="Name"
@@ -36,16 +40,16 @@ const App: React.FC = () => {
       <Select
         options={options}
         multiple={true}
-        placeholder="Select Colors"
-        value={selectedOptions}
-        onChange={(value) => setSelectedOptions(value as number[])}
+        placeholder="Select Multiple"
+        value={selectedMultiOptions}
+        onChange={(value) => setSelectedMultiOptions(value as number[])}
       />
       <Select
         options={options}
         multiple={false}
-        placeholder="Select Colors"
-        value={selectedOptions}
-        onChange={(value) => setSelectedOptions(value as number[])}
+        placeholder="Select Single"
+        value={selectedSingleOption}
+        onChange={(value) => setSelectedSingleOption(value as number)}
       />
       <button type="submit">Submit</button>
     </form>
