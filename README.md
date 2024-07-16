@@ -19,7 +19,7 @@ A lightweight, customizable, and accessible React select component built with Ty
 1. **Clone the repository:**
    ```sh
    git clone https://github.com/AlonKendler/select-ts-app.git
-   cd react-select-component
+   cd select-ts-app
    ```
 2. **Install dependencies:**
    ```sh
