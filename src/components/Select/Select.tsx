@@ -65,6 +65,13 @@ const Select: React.FC<SelectProps> = ({
     [options, searchTerm]
   );
 
+  useEffect(() => {
+    // Reset focusIndex if it is out of bounds after filtering
+    if (focusIndex >= filteredOptions.length) {
+      setFocusIndex(filteredOptions.length - 1);
+    }
+  }, [filteredOptions, focusIndex]);
+
   const handleSelect = (optionValue: number) => {
     if (multiple) {
       const newValue = selectedValue.includes(optionValue)
@@ -77,13 +84,17 @@ const Select: React.FC<SelectProps> = ({
     }
   };
 
-  const handleSelectAll = () => {
+  const handleSelectAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     if (multiple) {
       onChange(filteredOptions.map((option) => option.value));
     }
   };
 
-  const handleDeselectAll = () => {
+  const handleDeselectAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
     onChange(multiple ? [] : null);
   };
 
@@ -113,18 +124,39 @@ const Select: React.FC<SelectProps> = ({
         setFocusIndex(0);
       }
     } else {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      } else if (event.key === "ArrowDown") {
-        setFocusIndex((prevIndex) =>
-          prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : 0
-        );
-      } else if (event.key === "ArrowUp") {
-        setFocusIndex((prevIndex) =>
-          prevIndex > 0 ? prevIndex - 1 : filteredOptions.length - 1
-        );
-      } else if (event.key === "Enter") {
-        handleSelect(filteredOptions[focusIndex].value);
+      switch (event.key) {
+        case "Escape":
+          setIsOpen(false);
+          break;
+        case "ArrowDown":
+          setFocusIndex((prevIndex) =>
+            prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : 0
+          );
+          break;
+        case "ArrowUp":
+          setFocusIndex((prevIndex) =>
+            prevIndex > 0 ? prevIndex - 1 : filteredOptions.length - 1
+          );
+          break;
+        case "Enter":
+        case " ":
+          if (filteredOptions[focusIndex]) {
+            handleSelect(filteredOptions[focusIndex].value);
+          }
+          break;
+        case "Tab":
+          if (!event.shiftKey) {
+            event.preventDefault();
+            setFocusIndex((prevIndex) =>
+              prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : 0
+            );
+          } else {
+            event.preventDefault();
+            setFocusIndex((prevIndex) =>
+              prevIndex > 0 ? prevIndex - 1 : filteredOptions.length - 1
+            );
+          }
+          break;
       }
     }
   };
@@ -145,6 +177,9 @@ const Select: React.FC<SelectProps> = ({
       role="combobox"
       aria-expanded={isOpen}
       aria-haspopup="listbox"
+      aria-label={`Select ${multiple ? "multiple" : "single"} option${
+        multiple ? "s" : ""
+      }`}
     >
       <div
         className={`select-header ${disabled ? "disabled" : ""}`}
@@ -170,6 +205,7 @@ const Select: React.FC<SelectProps> = ({
                       className="remove-option"
                       onClick={(e) => {
                         e.preventDefault();
+                        e.stopPropagation();
                         removeOption(optionValue);
                       }}
                     >
@@ -188,20 +224,14 @@ const Select: React.FC<SelectProps> = ({
             <>
               <button
                 className="control-button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSelectAll();
-                }}
+                onClick={(e) => handleSelectAll(e)}
                 title="Select All"
               >
                 ✓
               </button>
               <button
                 className="control-button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleDeselectAll();
-                }}
+                onClick={(e) => handleDeselectAll(e)}
                 title="Deselect All"
               >
                 ×
@@ -222,6 +252,7 @@ const Select: React.FC<SelectProps> = ({
               onChange={(e) => setSearchTerm(e.target.value)}
               onClick={(e) => e.stopPropagation()}
               role="searchbox"
+              aria-label="Search options"
             />
           )}
           <div className="options-list">
