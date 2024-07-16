@@ -13,14 +13,14 @@ interface CustomStyles {
 }
 
 type SelectProps = {
+  options: Option[];
+  value: number[] | number | null;
+  onChange: (value: number[] | number | null) => void;
+  multiple?: boolean;
+  placeholder?: string;
   isSearchable?: boolean;
   disabled?: boolean;
   classname?: string;
-  options: Option[];
-  multiple?: boolean;
-  placeholder?: string;
-  onChange: (value: number[] | number | null) => void;
-  value: number[] | number | null;
   renderOption?: (option: Option) => React.ReactNode;
   renderValue?: (value: Option | Option[]) => React.ReactNode;
   customStyles?: CustomStyles;
