@@ -1,26 +1,55 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { useState } from "react";
+import Select from "./Select";
+import "./App.css";
 
-function App() {
+const options = [
+  { label: "Option 1", value: 1 },
+  { label: "Option 2", value: 2 },
+  { label: "Option 3", value: 3 },
+];
+
+const App: React.FC = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log({ name, email, selectedOptions });
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <Select
+        options={options}
+        multiple={true}
+        placeholder="Select Colors"
+        value={selectedOptions}
+        onChange={(value) => setSelectedOptions(value as number[])}
+      />
+      <Select
+        options={options}
+        multiple={false}
+        placeholder="Select Colors"
+        value={selectedOptions}
+        onChange={(value) => setSelectedOptions(value as number[])}
+      />
+      <button type="submit">Submit</button>
+    </form>
   );
-}
+};
 
 export default App;
