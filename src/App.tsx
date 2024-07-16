@@ -17,7 +17,6 @@ const App: React.FC = () => {
     multiSelect: [] as number[],
     largeSelect: [] as number[],
     customStyleSelect: [] as number[],
-    disabledSelect: null as number | null,
   });
 
   const normalOptions = generateOptions(5);
@@ -103,15 +102,6 @@ const App: React.FC = () => {
         placeholder="Custom styled select"
         renderOption={renderCustomOption}
         customStyles={customStyles}
-      />
-
-      <h2>Disabled Select</h2>
-      <Select
-        options={normalOptions}
-        value={formData.disabledSelect}
-        onChange={(value) => handleChange("disabledSelect", value)}
-        placeholder="This select is disabled"
-        disabled={true}
       />
 
       <button type="submit">Submit Form</button>
