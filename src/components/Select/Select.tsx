@@ -29,7 +29,9 @@ const Select: React.FC<SelectProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [focusIndex, setFocusIndex] = useState(0);
   const selectRef = useRef<HTMLDivElement>(null);
+  const optionsRefs = useRef<(HTMLLabelElement | null)[]>([]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -108,17 +110,30 @@ const Select: React.FC<SelectProps> = ({
       ) {
         setIsOpen(true);
         event.preventDefault();
+        setFocusIndex(0);
       }
     } else {
       if (event.key === "Escape") {
         setIsOpen(false);
-      } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-        // Implement focus movement logic here
+      } else if (event.key === "ArrowDown") {
+        setFocusIndex((prevIndex) =>
+          prevIndex < filteredOptions.length - 1 ? prevIndex + 1 : 0
+        );
+      } else if (event.key === "ArrowUp") {
+        setFocusIndex((prevIndex) =>
+          prevIndex > 0 ? prevIndex - 1 : filteredOptions.length - 1
+        );
       } else if (event.key === "Enter") {
-        // Implement selection logic for the focused option
+        handleSelect(filteredOptions[focusIndex].value);
       }
     }
   };
+
+  useEffect(() => {
+    if (isOpen && optionsRefs.current[focusIndex]) {
+      optionsRefs.current[focusIndex]!.focus();
+    }
+  }, [isOpen, focusIndex]);
 
   return (
     <div
@@ -127,10 +142,14 @@ const Select: React.FC<SelectProps> = ({
       onKeyDown={handleKeyDown}
       tabIndex={0}
       aria-disabled={disabled}
+      role="combobox"
+      aria-expanded={isOpen}
+      aria-haspopup="listbox"
     >
       <div
         className={`select-header ${disabled ? "disabled" : ""}`}
         onClick={toggleOpen}
+        aria-controls="select-listbox"
       >
         <div className="selected-options">
           {selectedValue.length > 0 ? (
@@ -193,7 +212,7 @@ const Select: React.FC<SelectProps> = ({
         </div>
       </div>
       {isOpen && (
-        <div className="select-dropdown">
+        <div className="select-dropdown" id="select-listbox" role="listbox">
           {isSearchable && (
             <input
               type="text"
@@ -202,11 +221,18 @@ const Select: React.FC<SelectProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onClick={(e) => e.stopPropagation()}
+              role="searchbox"
             />
           )}
           <div className="options-list">
-            {filteredOptions.map((option) => (
-              <label key={option.value}>
+            {filteredOptions.map((option, index) => (
+              <label
+                key={option.value}
+                ref={(el) => (optionsRefs.current[index] = el)}
+                tabIndex={-1}
+                role="option"
+                aria-selected={selectedValue.includes(option.value)}
+              >
                 <input
                   type={multiple ? "checkbox" : "radio"}
                   checked={selectedValue.includes(option.value)}
